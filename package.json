@@ -1,0 +1,33 @@
+{
+    "name": "cov-tech-bot",
+    "version": "1.0.0",
+    "description": "A Twitter bot that informs users about the Coronavirus Tech Handbook (coronavirustechhandbook.com).",
+    "keywords": [
+        "twitter",
+        "bot",
+        "corona",
+        "virus",
+        "tech",
+        "handbook"
+    ],
+    "homepage": "https://github.com/lewisjones21/cov-tech-bot/README.md",
+    "private": true,
+    "main": "app.js",
+    "scripts": {
+        "start": "node src/app.js"
+    },
+    "author": "Lewis Jones",
+    "license": "ISC",
+    "dependencies": {
+        "@types/express": "^4.17.3",
+        "@types/morgan": "^1.9.0",
+        "@types/request": "^2.48.4",
+        "@types/twit": "^2.2.23",
+        "dotenv": "^8.2.0",
+        "express": "^4.17.1",
+        "later": "^1.0.2",
+        "morgan": "^1.9.1",
+        "request": "^2.88.0",
+        "twit": "^2.2.11"
+    }
+}
