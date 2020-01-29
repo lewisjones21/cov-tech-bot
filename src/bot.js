@@ -6,25 +6,29 @@ module.exports = class Bot {
     constructor() {
         this.timer = null;
     }
-    async start() {
+    async start(loud) {
         if (this.timer === null) {
             this.timer = later.setInterval(Bot.handleInterval, Bot.getSchedule());
-            await tweet("It's " + Bot.getTimeNowString() + " - Hello World!");
+            if (loud) {
+                await tweet("It's " + Bot.getTimeNowString() + " - Hello World!");
+            }
             return true;
         }
         return false;
     }
-    async stop() {
+    async stop(loud) {
         if (this.timer !== null) {
             this.timer.clear();
             this.timer = null;
-            await tweet("It's " + Bot.getTimeNowString() + " - Goodbye World!");
+            if (loud) {
+                await tweet("It's " + Bot.getTimeNowString() + " - Goodbye World!");
+            }
             return true;
         }
         return false;
     }
     static async handleInterval() {
-        await tweet(Bot.getTimeNowString() + " make a wish!");
+        await tweet(Bot.getTimeNowString() + " checking for tweets...");
     }
     static getTimeNowString() {
         const date = new Date();
@@ -34,11 +38,12 @@ module.exports = class Bot {
         return ("0" + numberString).slice(-2);
     }
     static getSchedule() {
+        let minutes = [];
+        for (let i = 0; i < 60; i += 2) {
+            minutes = [ ...minutes, i ];
+        }
         return { "schedules": [
-            { "h": [ 1 ], "m": [ 23 ] },
-            { "h": [ 12 ], "m": [ 34 ] },
-            { "h": [ 11 ], "m": [ 11 ] },
-            { "h": [ 22 ], "m": [ 22 ] }
+            { "m": minutes }
         ] };
     }
 };
