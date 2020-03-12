@@ -1,20 +1,24 @@
+import express from "express";
+import logger from "morgan";
+import requestPromise from "request-promise-native";
+import Bot from "./bot";
+
 const PORT = process.env.PORT || 8080,
-      express = require("express"),
-      logger = require("morgan"),
       app = express(),
-      Requester = require("./requester.js");
-
-require("dotenv").config();
-
-const Bot = require("./bot.js"),
       bot = new Bot(),
       preventSleepInterval = 25 * 60 * 1000;
 
-let intervalTimer = null;
+require("dotenv").config();
+
+app.use(logger("tiny"));
+
+
+let intervalTimer: any = null;
 
 function preventSleep() {
-    Requester.get(process.env.URL + "nudge",
-                  () => console.log("Prevented app from sleeping"));
+    requestPromise.get(process.env.URL + "nudge")
+        .then(() => console.log("Prevented app from sleeping"))
+        .catch((error) => console.log("App sleep prevention may have failed:", error));
 }
 
 app.use(logger("tiny"));
@@ -48,5 +52,7 @@ app.get("/nudge", (req, res) => {
 
 app.listen(PORT, () => {
     console.info("Server listening on port " + PORT);
-    Requester.get(process.env.URL + "start", (response) => console.log(response));
+    requestPromise.get(process.env.URL + "start")
+        .then((result) => console.log("App started:", result))
+        .catch((error) => console.log("Error starting app:", error));
 });
