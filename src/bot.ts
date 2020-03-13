@@ -1,16 +1,20 @@
-import Twitter from "./twitter";
+import Twitter, { TweetData } from "./twitter";
 
 export default class Bot {
     timer: any
     intervalMillis: number
+    latestID: number
     constructor() {
         this.timer = null;
         this.intervalMillis = 1000 * 60;
+        this.latestID = 0;
     }
     async start(loud: boolean) {
         if (this.timer === null) {
-            Bot.handleInterval();
-            this.timer = setInterval(Bot.handleInterval, this.intervalMillis);
+            this.handleInterval();
+            this.timer = setInterval(() => {
+                this.handleInterval();
+            }, this.intervalMillis);
             if (loud) {
                 await Twitter.tweet("It's " + Bot.getTimeNowString() + " - Hello World!");
             }
@@ -29,11 +33,22 @@ export default class Bot {
         }
         return false;
     }
-    static handleInterval() {
-        Twitter.getTweets("coronavirus", 2, "0", Bot.handleTweetSearchResults);
+    handleInterval() {
+        Twitter.getTweets("coronavirus tech",
+                          50,
+                          this.latestID,
+                          (data) => {
+                              this.handleTweetSearchResults(data);
+                          });
     }
-    static handleTweetSearchResults(data: {}) {
-        console.log("data.json", data);
+    handleTweetSearchResults(data: TweetData) {
+        const statuses = data.statuses.map((status) => {
+            if (status.id > this.latestID) {
+                this.latestID = status.id;
+            }
+            return { "text": status.text, "id": status.id };
+        });
+        console.log(statuses);
     }
 
     static getTimeNowString() {

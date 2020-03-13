@@ -8,28 +8,34 @@ const twitterConnection = new Twit({
     "access_token_secret": process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
+export interface TweetData { "statuses": { "text": string, "id": number }[] }
+
 export default class Twitter {
     static getTweets(searchTerms: string,
                      count: number,
-                     lastTweetID: string,
-                     callback: (data: {}) => void) {
+                     lastTweetID: number,
+                     callback: (data: TweetData) => void) {
         console.log("Searching for tweets with keywords: '" + searchTerms + "'...");
         const params: Twit.Params = {
             "q": searchTerms,
             "result_type": "recent",
             count,
-            "since_id": lastTweetID
+            "since_id": lastTweetID.toString()
         };
         try {
-            twitterConnection.get("search/tweets", params, (err: Error, result: Twit.Response, response: IncomingMessage) => {
-                if (err) {
-                    console.error(err);
-                } else if (response.statusCode === 200) {
-                    callback(result);
-                } else {
-                    console.warn("response.statusCode", response.statusCode);
+            twitterConnection.get(
+                "search/tweets",
+                params,
+                (err: Error, result: Twit.Response, response: IncomingMessage) => {
+                    if (err) {
+                        console.error(err);
+                    } else if (response.statusCode === 200) {
+                        callback(<TweetData> result);
+                    } else {
+                        console.warn("response.statusCode", response.statusCode);
+                    }
                 }
-            });
+            );
         } catch (err) {
             console.error("Failed to search for tweets", err);
         }
