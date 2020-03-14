@@ -4,10 +4,22 @@ export default class Bot {
     timer: any
     intervalMillis: number
     latestID: number
+    searchCount: number
+    keywords: string[]
     constructor() {
         this.timer = null;
         this.intervalMillis = 1000 * 60;
         this.latestID = 0;
+        this.searchCount = 12;
+        this.keywords = [
+            "coronavirus",
+            // "covid",
+            // "ncov",
+            "tech"
+            // "hack",
+            // "hackathon",
+            // "infographic"*/
+        ];
     }
     async start(loud: boolean) {
         if (this.timer === null) {
@@ -34,8 +46,8 @@ export default class Bot {
         return false;
     }
     handleInterval() {
-        Twitter.getTweets("coronavirus tech",
-                          50,
+        Twitter.getTweets(this.keywords.join(" "),
+                          this.searchCount,
                           this.latestID,
                           (data) => {
                               this.handleTweetSearchResults(data);
