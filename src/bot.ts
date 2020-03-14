@@ -5,7 +5,8 @@ export default class Bot {
     intervalMillis: number
     latestID: string
     searchCount: number
-    keywords: string[]
+    keywordsA: string[]
+    keywordsB: string[]
     responses: string[]
     recentTweets: TweetStatus[]
     constructor() {
@@ -13,14 +14,16 @@ export default class Bot {
         this.intervalMillis = 1000 * 60;
         this.latestID = "0";
         this.searchCount = 12;
-        this.keywords = [
+        this.keywordsA = [
             "coronavirus",
-            // "covid",
-            // "ncov",
-            "tech"
-            // "hack",
-            // "hackathon",
-            // "infographic"*/
+            "covid",
+            "ncov"
+        ];
+        this.keywordsB = [
+            "tech",
+            "hack",
+            "hackathon",
+            "infographic"
         ];
         this.responses = [
             "Check this out: coronavirustechhandbook.com/?ref=bot",
@@ -55,22 +58,29 @@ export default class Bot {
     }
     handleInterval() {
         this.recentTweets = [];
-        const keywords: string = this.keywords.join(" ");
-        Promise.all([
-            Twitter.getTweets(keywords,
-                              this.searchCount,
-                              this.latestID)
-                .then((data: TweetData | null) => {
-                    if (data) {
-                        this.recentTweets = [ ...this.recentTweets, ...data.statuses ];
-                    } else {
-                        console.warn("Search with", keywords, "returned null");
-                    }
-                })
-                .catch((err: Error) => {
-                    console.error(err);
-                })
-        ])
+        let keywordsPairList: string[] = [];
+        for (let a = 0; a < this.keywordsA.length; a++) {
+            for (let b = 0; b < this.keywordsB.length; b++) {
+                keywordsPairList = [ ...keywordsPairList,
+                                     this.keywordsA[a] + " " + this.keywordsB[b] ];
+            }
+        }
+        const dividedSearchCount = this.searchCount / keywordsPairList.length;
+        Promise.all(keywordsPairList.map((keywordPair: string) => Twitter.getTweets(
+            keywordPair,
+            dividedSearchCount,
+            this.latestID
+        )
+            .then((data: TweetData | null) => {
+                if (data) {
+                    this.recentTweets = [ ...this.recentTweets, ...data.statuses ];
+                } else {
+                    console.warn("Search with", keywordPair, "returned null");
+                }
+            })
+            .catch((err: Error) => {
+                console.error(err);
+            })))
             .then(() => {
                 this.handleTweetSearchResults();
             })

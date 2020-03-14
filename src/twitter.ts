@@ -15,7 +15,7 @@ export default class Twitter {
     static getTweets(searchTerms: string,
                      count: number,
                      lastTweetID: string): Promise<TweetData | null> {
-        console.log("Searching for tweets with keywords: '" + searchTerms + "'...");
+        console.log("Searching for", count, "tweets with keywords: '" + searchTerms + "'...");
         const params: Twit.Params = {
             "q": searchTerms,
             "result_type": "recent",
