@@ -22,9 +22,9 @@ export default class Bot {
             // "infographic"*/
         ];
         this.responses = [
-            "Check this out: coronavirustechhandbook.com",
-            "Have you seen this? coronavirustechhandbook.com",
-            "This might be relevant: coronavirustechhandbook.com"
+            "Check this out: coronavirustechhandbook.com/?ref=bot",
+            "Have you seen this? coronavirustechhandbook.com/?ref=bot",
+            "This might be relevant: coronavirustechhandbook.com/?ref=bot"
         ];
     }
     async start(loud: boolean) {
