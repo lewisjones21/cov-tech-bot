@@ -8,19 +8,19 @@ const twitterConnection = new Twit({
     "access_token_secret": process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
-export interface TweetData { "statuses": { "text": string, "id": number }[] }
+export interface TweetData { "statuses": { "text": string, "id_str": string, "user": { "screen_name": string } }[] }
 
 export default class Twitter {
     static getTweets(searchTerms: string,
                      count: number,
-                     lastTweetID: number,
+                     lastTweetID: string,
                      callback: (data: TweetData) => void) {
         console.log("Searching for tweets with keywords: '" + searchTerms + "'...");
         const params: Twit.Params = {
             "q": searchTerms,
             "result_type": "recent",
             count,
-            "since_id": lastTweetID.toString()
+            "since_id": lastTweetID
         };
         try {
             twitterConnection.get(
@@ -40,13 +40,17 @@ export default class Twitter {
             console.error("Failed to search for tweets", err);
         }
     }
-    static async tweet(bodyText: string) {
+    static async tweet(bodyText: string, replyData?: { "inReplyToID": string, "username": string }) {
         console.log("Attempting to tweet: '" + bodyText + "'...");
         try {
-            await twitterConnection.post("statuses/update", {
-                "status": bodyText.slice(0, 288)
-            });
-            console.info("Sent tweet successfully");
+            let params: any = {"status": bodyText.slice(0, 288)};
+            if (replyData) {
+                params.status = "@" + replyData.username + "\n" + params.status;
+                params["in_reply_to_status_id"] = replyData.inReplyToID;
+            }
+            await twitterConnection.post("statuses/update", params);
+            console.info("Sent tweet successfully"
+                + (replyData ? " in response to " + replyData.username : ""));
         } catch (err) {
             console.error("Failed to send tweet", err);
         }
