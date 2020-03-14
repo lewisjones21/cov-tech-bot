@@ -2,8 +2,8 @@ import Twitter, { TweetStatus, TweetData } from "./twitter";
 
 export default class Bot {
     timer: any
-    intervalMillis: number
     latestID: string
+    intervalMillis: number
     searchCount: number
     keywordsA: string[]
     keywordsB: string[]
@@ -11,8 +11,8 @@ export default class Bot {
     recentTweets: TweetStatus[]
     constructor() {
         this.timer = null;
-        this.intervalMillis = 1000 * 60;
         this.latestID = "0";
+        this.intervalMillis = 1000 * 60 * 7.25;
         this.searchCount = 12;
         this.keywordsA = [
             "coronavirus",
