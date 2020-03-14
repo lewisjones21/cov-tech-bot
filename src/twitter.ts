@@ -8,13 +8,13 @@ const twitterConnection = new Twit({
     "access_token_secret": process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
-export interface TweetData { "statuses": { "text": string, "id_str": string, "user": { "screen_name": string } }[] }
+export interface TweetStatus { "text": string, "id_str": string, "user": { "screen_name": string } }
+export interface TweetData { "statuses": TweetStatus[] }
 
 export default class Twitter {
     static getTweets(searchTerms: string,
                      count: number,
-                     lastTweetID: string,
-                     callback: (data: TweetData) => void) {
+                     lastTweetID: string): Promise<TweetData | null> {
         console.log("Searching for tweets with keywords: '" + searchTerms + "'...");
         const params: Twit.Params = {
             "q": searchTerms,
@@ -22,31 +22,30 @@ export default class Twitter {
             count,
             "since_id": lastTweetID
         };
-        try {
-            twitterConnection.get(
+            return twitterConnection.get(
                 "search/tweets",
-                params,
-                (err: Error, result: Twit.Response, response: IncomingMessage) => {
-                    if (err) {
-                        console.error(err);
-                    } else if (response.statusCode === 200) {
-                        callback(<TweetData> result);
-                    } else {
-                        console.warn("response.statusCode", response.statusCode);
-                    }
+                params
+            )
+            .then((response: Twit.PromiseResponse) => {
+                if (response.resp.statusCode === 200) {
+                    return <TweetData> response.data;
+                } else {
+                    console.warn("response.statusCode:", response.resp.statusCode);
+                    return Promise.resolve(null)
                 }
-            );
-        } catch (err) {
-            console.error("Failed to search for tweets", err);
-        }
+            })
+                .catch((err: Error) => {
+                    console.error(err);
+                    return Promise.resolve(null)
+                });
     }
     static async tweet(bodyText: string, replyData?: { "inReplyToID": string, "username": string }) {
         console.log("Attempting to tweet: '" + bodyText + "'...");
         try {
-            let params: any = {"status": bodyText.slice(0, 288)};
+            const params: any = { "status": bodyText.slice(0, 288) };
             if (replyData) {
                 params.status = "@" + replyData.username + "\n" + params.status;
-                params["in_reply_to_status_id"] = replyData.inReplyToID;
+                params.in_reply_to_status_id = replyData.inReplyToID;
             }
             await twitterConnection.post("statuses/update", params);
             console.info("Sent tweet successfully"

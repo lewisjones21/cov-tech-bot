@@ -1,4 +1,4 @@
-import Twitter, { TweetData } from "./twitter";
+import Twitter, { TweetStatus, TweetData } from "./twitter";
 
 export default class Bot {
     timer: any
@@ -7,6 +7,7 @@ export default class Bot {
     searchCount: number
     keywords: string[]
     responses: string[]
+    recentTweets: TweetStatus[]
     constructor() {
         this.timer = null;
         this.intervalMillis = 1000 * 60;
@@ -26,6 +27,7 @@ export default class Bot {
             "Have you seen this? coronavirustechhandbook.com/?ref=bot",
             "This might be relevant: coronavirustechhandbook.com/?ref=bot"
         ];
+        this.recentTweets = [];
     }
     async start(loud: boolean) {
         if (this.timer === null) {
@@ -52,23 +54,39 @@ export default class Bot {
         return false;
     }
     handleInterval() {
-        Twitter.getTweets(this.keywords.join(" "),
-                          this.searchCount,
-                          this.latestID,
-                          (data) => {
-                              this.handleTweetSearchResults(data);
-                          });
+        this.recentTweets = [];
+        const keywords: string = this.keywords.join(" ");
+        Promise.all([
+            Twitter.getTweets(keywords,
+                              this.searchCount,
+                              this.latestID)
+                .then((data: TweetData | null) => {
+                    if (data) {
+                        this.recentTweets = [ ...this.recentTweets, ...data.statuses ];
+                    } else {
+                        console.warn("Search with", keywords, "returned null");
+                    }
+                })
+                .catch((err: Error) => {
+                    console.error(err);
+                })
+        ])
+            .then(() => {
+                this.handleTweetSearchResults();
+            })
+            .catch((err: Error) => {
+                console.error(err);
+            });
     }
-    handleTweetSearchResults(data: TweetData) {
-        const statuses = data.statuses.map((status) => {
+    handleTweetSearchResults() {
+        this.recentTweets.forEach((status: TweetStatus) => {
             if (Number(status.id_str) > Number(this.latestID)) {
                 this.latestID = status.id_str;
             }
+            console.log(status.user.screen_name, "(" + status.id_str + "):", status.text);
             Twitter.tweet(this.responses[Math.floor(Math.random() * this.responses.length)],
                           { "inReplyToID": status.id_str, "username": status.user.screen_name });
-            return { "text": status.text, "id": status.id_str };
         });
-        console.log(statuses);
     }
 
     static getTimeNowString() {
